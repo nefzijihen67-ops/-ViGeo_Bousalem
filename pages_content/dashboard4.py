@@ -410,6 +410,14 @@ def show(lang):
         st.title(T["nav_tab4"])
         st.write(M["warning_system_sub"])
 
+    st.markdown(f"""
+    <div style='background:#FDEDEC; border-right:5px solid #C0392B; border-radius:10px;
+                padding:16px 20px; margin-top:14px;'>
+        <div style='font-weight:800; color:#C0392B; font-size:15px;'>{T["disclaimer_title"]}</div>
+        <div style='font-size:13.5px; color:#7B241C; margin-top:6px; line-height:1.6;'>{T["disclaimer_text"]}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.write("")
 
     try:

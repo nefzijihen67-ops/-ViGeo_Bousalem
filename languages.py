@@ -125,6 +125,8 @@ TEXTS = {
         "reference_points_title": "🏥 نقاط مرجعية / إخلاء بديلة (خارج نطاق الخريطة)",
         "confidence_note": "ملاحظة: دقة الإحداثيات تتفاوت (High/Medium/Low) حسب توفر بيانات OSM لكل موقع؛ العناصر المصنّفة 'A verifier' تحتاج تحديد جغرافي إضافي لاحقًا.",
         "no_data_title": "بيانات غير متوفرة",
+        "disclaimer_title": "⚠️ تنويه مهم",
+        "disclaimer_text": "هذا الموقع أداة أكاديمية أُعدّت في إطار مشروع تخرّج جامعي، ولا تُعتبر بديلاً عن التحذيرات والتعليمات الرسمية الصادرة عن الحماية المدنية والسلطات المختصة. في حال وجود خطر فيضان حقيقي، يُرجى دائمًا اتباع التعليمات الرسمية والاتصال بأرقام الطوارئ (197 الحماية المدنية).",
     },
     "fr": {
         "app_title": "ViGeo | Bou Salem",
@@ -247,6 +249,8 @@ TEXTS = {
         "risk_map_title": "🗺️ Carte de risque interactive",
         "opacity_label": "🎚️ Opacité de la couche de risque",
         "risk_report_title": "📋 Rapport des zones menacées",
+        "disclaimer_title": "⚠️ Avertissement important",
+        "disclaimer_text": "Ce site est un outil académique conçu dans le cadre d'un projet de fin d'études universitaire, et ne remplace en aucun cas les alertes et instructions officielles émises par la Protection Civile et les autorités compétentes. En cas de risque réel d'inondation, veuillez toujours suivre les consignes officielles et contacter les numéros d'urgence (197 Protection Civile).",
     },
    "en": {
         "app_title": "ViGeo | Bousalem",
@@ -369,5 +373,7 @@ TEXTS = {
         "risk_map_title": "🗺️ Interactive Risk Map",
         "opacity_label": "🎚️ Risk Layer Opacity",
         "risk_report_title": "📋 Threatened Areas Report",
+        "disclaimer_title": "⚠️ Important Disclaimer",
+        "disclaimer_text": "This site is an academic tool developed as part of a university graduation project, and is not a substitute for official warnings and instructions issued by Civil Protection and relevant authorities. In the event of a real flood risk, always follow official instructions and contact emergency numbers (197 Civil Protection).",
     },
 }
