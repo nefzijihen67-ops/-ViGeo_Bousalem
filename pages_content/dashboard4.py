@@ -54,11 +54,8 @@ MAP_TXT = {
         "auto_rain_info": "🌐 كمية الأمطار المتوقعة اليوم (Open-Meteo): **{rain} ملم**",
         "auto_rain_error": "⚠️ تعذّر جلب بيانات Open-Meteo، جربي الإدخال اليدوي.",
         "col_missing_warning": "⚠️ عمود هذا السيناريو غير موجود بالملف.",
-        "kpi_very_high": "مواقع خطر مرتفع جدًا", "kpi_high": "مواقع خطر مرتفع",
-        "kpi_moderate": "مواقع خطر متوسط", "kpi_pending": "قيد التحقق الجغرافي",
         "day_today": "📍 اليوم", "day_tomorrow": "📆 غدًا", "day_after": "📆 بعد غد",
         "forecast_rain_info": "🌐 كمية الأمطار المتوقعة (Open-Meteo): **{rain} ملم**",
-        "warning_system_title": "🚨 نظام الإنذار المبكر — 3 أيام قادمة",
         "warning_system_sub": "تابعي خطر الفيضان لليوم الحالي وليومين قادمين، بناءً على توقعات الأمطار.",
     },
     "fr": {
@@ -69,11 +66,8 @@ MAP_TXT = {
         "auto_rain_info": "🌐 Pluie prévue aujourd'hui (Open-Meteo) : **{rain} mm**",
         "auto_rain_error": "⚠️ Impossible de récupérer les données Open-Meteo, essayez la saisie manuelle.",
         "col_missing_warning": "⚠️ La colonne de ce scénario est introuvable dans le fichier.",
-        "kpi_very_high": "Sites à risque très élevé", "kpi_high": "Sites à risque élevé",
-        "kpi_moderate": "Sites à risque modéré", "kpi_pending": "Vérification géographique en cours",
         "day_today": "📍 Aujourd'hui", "day_tomorrow": "📆 Demain", "day_after": "📆 Après-demain",
         "forecast_rain_info": "🌐 Pluie prévue (Open-Meteo) : **{rain} mm**",
-        "warning_system_title": "🚨 Système d'alerte précoce — 3 prochains jours",
         "warning_system_sub": "Suivez le risque d'inondation pour aujourd'hui et les deux prochains jours, selon les prévisions de pluie.",
     },
     "en": {
@@ -84,11 +78,8 @@ MAP_TXT = {
         "auto_rain_info": "🌐 Today's expected rainfall (Open-Meteo): **{rain} mm**",
         "auto_rain_error": "⚠️ Unable to fetch Open-Meteo data, try manual entry.",
         "col_missing_warning": "⚠️ This scenario's column was not found in the file.",
-        "kpi_very_high": "Very high risk sites", "kpi_high": "High risk sites",
-        "kpi_moderate": "Moderate risk sites", "kpi_pending": "Pending geo-verification",
         "day_today": "📍 Today", "day_tomorrow": "📆 Tomorrow", "day_after": "📆 Day after tomorrow",
         "forecast_rain_info": "🌐 Expected rainfall (Open-Meteo): **{rain} mm**",
-        "warning_system_title": "🚨 Early Warning System — Next 3 Days",
         "warning_system_sub": "Track flood risk for today and the next two days, based on rainfall forecasts.",
     },
 }
@@ -142,13 +133,21 @@ def fetch_3day_rain():
     return r.json()["daily"]["precipitation_sum"]
 
 
-def get_scenario(rain_mm):
+def get_scenario_index(rain_mm):
     if rain_mm < 20:
         return None
-    for s in SCENARIOS:
+    for i, s in enumerate(SCENARIOS):
         if s["min"] <= rain_mm < s["max"]:
-            return s
-    return SCENARIOS[-1]
+            return i
+    return len(SCENARIOS) - 1
+
+
+def get_scenario(rain_mm, bump=0):
+    idx = get_scenario_index(rain_mm)
+    if idx is None:
+        return None
+    idx = min(idx + bump, len(SCENARIOS) - 1)
+    return SCENARIOS[idx]
 
 
 @st.cache_data(ttl=3600)
@@ -339,11 +338,11 @@ def render_report(scenario, lang, M, day_id):
             category_bar_chart(df, name_col, scenario["col"], f"chart_{cat['id']}_{day_id}", lang, M["risk_axis"])
 
 
-def render_day_section(day_id, day_title, rain_mm, lang, T, M):
+def render_day_section(day_id, day_title, rain_mm, lang, T, M, bump=0):
     """يعرض قسمًا كاملاً (خريطة + Legend + تقرير) ليوم واحد"""
     st.subheader(day_title)
 
-    scenario = get_scenario(rain_mm)
+    scenario = get_scenario(rain_mm, bump=bump)
 
     if scenario is None:
         with st.container(key=f"card_risk_result_{day_id}"):
@@ -355,6 +354,8 @@ def render_day_section(day_id, day_title, rain_mm, lang, T, M):
 
     with st.container(key=f"card_risk_map_{day_id}"):
         st.caption(M["scenario_caption"].format(label=scenario_label, rain=rain_mm))
+        if bump > 0:
+            st.warning(T["dam_release_active_badge"])
 
         opacity = st.slider(T["opacity_label"], 0.1, 0.9, 0.65, 0.05, key=f"opacity_{day_id}")
 
@@ -439,9 +440,13 @@ def show(lang):
         else:
             rain_today = st.number_input(T["manual_rain_label"], min_value=0, max_value=300, value=50, step=5)
 
+        st.write("")
+        dam_release = st.checkbox(T["dam_release_label"], value=False)
+        st.caption(T["dam_release_note"])
+
     st.write("")
 
-    render_day_section("today", M["day_today"], rain_today, lang, T, M)
+    render_day_section("today", M["day_today"], rain_today, lang, T, M, bump=1 if dam_release else 0)
 
     st.write("---")
 

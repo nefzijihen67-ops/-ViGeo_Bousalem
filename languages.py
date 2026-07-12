@@ -127,6 +127,9 @@ TEXTS = {
         "no_data_title": "بيانات غير متوفرة",
         "disclaimer_title": "⚠️ تنويه مهم",
         "disclaimer_text": "هذا الموقع أداة أكاديمية أُعدّت في إطار مشروع تخرّج جامعي، ولا تُعتبر بديلاً عن التحذيرات والتعليمات الرسمية الصادرة عن الحماية المدنية والسلطات المختصة. في حال وجود خطر فيضان حقيقي، يُرجى دائمًا اتباع التعليمات الرسمية والاتصال بأرقام الطوارئ (197 الحماية المدنية).",
+        "dam_release_label": "🚧 هل هناك تصريف استثنائي من السدود اليوم؟ (كسّاب / بوهرتمة / ملاق)",
+        "dam_release_note": "ℹ️ النموذج الحالي يعتمد على كمية الأمطار فقط، ولا يملك بيانات حية عن تصريف السدود (لعدم توفر واجهة برمجية عامة لها حاليًا). عند التفعيل، يرفع النظام تقديريًا مستوى الخطر درجة واحدة، محاكاةً لما حدث فعليًا في فيضان جانفي 2003، حين فاقمت إطلاقات سد ملاق منسوب المياه بشكل ملحوظ رغم أن كمية الأمطار وحدها لم تكن لتُنذر بنفس الخطورة.",
+        "dam_release_active_badge": "⚠️ تم رفع مستوى الخطر بسبب تصريف السدود",
     },
     "fr": {
         "app_title": "ViGeo | Bou Salem",
@@ -251,6 +254,9 @@ TEXTS = {
         "risk_report_title": "📋 Rapport des zones menacées",
         "disclaimer_title": "⚠️ Avertissement important",
         "disclaimer_text": "Ce site est un outil académique conçu dans le cadre d'un projet de fin d'études universitaire, et ne remplace en aucun cas les alertes et instructions officielles émises par la Protection Civile et les autorités compétentes. En cas de risque réel d'inondation, veuillez toujours suivre les consignes officielles et contacter les numéros d'urgence (197 Protection Civile).",
+        "dam_release_label": "🚧 Y a-t-il un lâcher exceptionnel des barrages aujourd'hui ? (Kasseb / Bou Hertma / Mellègue)",
+        "dam_release_note": "ℹ️ Le modèle actuel se base uniquement sur la quantité de pluie et ne dispose pas de données en temps réel sur les lâchers de barrages (faute d'API publique disponible). Si activé, le système augmente le niveau de risque d'un cran, en simulant ce qui s'est réellement produit lors de l'inondation de janvier 2003, où les lâchers du barrage Mellègue ont significativement aggravé le niveau des eaux alors que la pluie seule n'aurait pas annoncé une telle gravité.",
+        "dam_release_active_badge": "⚠️ Niveau de risque augmenté en raison des lâchers de barrages",
     },
    "en": {
         "app_title": "ViGeo | Bousalem",
@@ -375,5 +381,8 @@ TEXTS = {
         "risk_report_title": "📋 Threatened Areas Report",
         "disclaimer_title": "⚠️ Important Disclaimer",
         "disclaimer_text": "This site is an academic tool developed as part of a university graduation project, and is not a substitute for official warnings and instructions issued by Civil Protection and relevant authorities. In the event of a real flood risk, always follow official instructions and contact emergency numbers (197 Civil Protection).",
+        "dam_release_label": "🚧 Is there an exceptional dam release today? (Kasseb / Bou Hertma / Mellègue)",
+        "dam_release_note": "ℹ️ The current model relies solely on rainfall amount and has no live data on dam releases (no public API is currently available). If enabled, the system raises the risk level by one tier, simulating what actually happened during the January 2003 flood, when releases from the Mellègue Dam significantly worsened water levels even though rainfall alone would not have signaled the same severity.",
+        "dam_release_active_badge": "⚠️ Risk level raised due to dam releases",
     },
 }
