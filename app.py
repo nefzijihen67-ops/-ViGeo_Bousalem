@@ -1,7 +1,7 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 from languages import TEXTS
-from pages_content import dashboard1, dashboard2, dashboard3, dashboard4, dashboard5
+from pages_content import dashboard1, dashboard2, dashboard3, dashboard4, dashboard5, dashboard6
 
 st.set_page_config(page_title="ViGeo | Bou Salem", page_icon="🌊", layout="wide")
 
@@ -158,8 +158,8 @@ with st.container(key="header_bar"):
 
 selected = option_menu(
     menu_title=None,
-    options=[T["nav_tab1"], T["nav_tab2"], T["nav_tab3"], T["nav_tab4"], T["nav_tab5"]],
-    icons=["info-circle", "geo-alt", "cloud-sun", "exclamation-triangle", "shield-check"],
+    options=[T["nav_tab1"], T["nav_tab2"], T["nav_tab3"], T["nav_tab4"], T["nav_tab5"], T["nav_tab6"]],
+    icons=["info-circle", "geo-alt", "cloud-sun", "exclamation-triangle", "shield-check", "book"],
     orientation="horizontal",
     styles={
         "container": {"padding": "0", "background-color": TABS_BG},
@@ -179,3 +179,5 @@ elif selected == T["nav_tab4"]:
     dashboard4.show(lang)
 elif selected == T["nav_tab5"]:
     dashboard5.show(lang)
+elif selected == T["nav_tab6"]:
+    dashboard6.show(lang)

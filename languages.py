@@ -8,6 +8,7 @@ TEXTS = {
         "nav_tab3": "توقعات الطقس",
         "nav_tab4": "خرائط الخطر",
         "nav_tab5": "إرشادات الوقاية",
+        "nav_tab6": "المنهجية والمصادر",
         "coming_soon": "🚧 هذا القسم قيد الإنشاء، سنبنيه في المرحلة القادمة.",
 
         "tab1_title": "مفهوم الفيضانات",
@@ -140,6 +141,7 @@ TEXTS = {
         "nav_tab3": "Prévisions météo",
         "nav_tab4": "Cartes de risque",
         "nav_tab5": "Consignes de prévention",
+        "nav_tab6": "Méthodologie & Sources",
         "coming_soon": "🚧 Cette section est en cours de construction.",
 
         "tab1_title": "Concept d'inondation",
@@ -267,6 +269,7 @@ TEXTS = {
         "nav_tab3": "Weather Forecast",
         "nav_tab4": "Risk Maps",
         "nav_tab5": "Prevention Guidelines",
+        "nav_tab6": "Methodology & Sources",
         "coming_soon": "🚧 This section is under construction.",
 
         "tab1_title": "Flood Concept",
