@@ -25,12 +25,23 @@ SCENARIOS = [
 ]
 
 REAL_PALETTE = ["#91CBA8", "#DDF1B4", "#FEDF99", "#F59053", "#D7191C"]
+SAFE_COLOR = "#A9C9BB"
 
 PRIORITY_KEYWORDS = [
     "tres faible", "très faible", "very low", "faible", "low",
     "moderee", "modérée", "moyen", "moderate",
     "elevee", "élevée", "high", "tres elevee", "très élevée", "very high",
 ]
+
+# مساحة كل درجة خطورة (كم²) لكل سيناريو، مستخرجة من إحصائيات QGIS (Unique Values)
+AREA_DATA = {
+    "s1": {0: 247.656, 5: 31.382},
+    "s2": {0: 88.372, 4: 158.964, 5: 31.382},
+    "s3": {0: 18.122, 3: 70.250, 4: 158.964, 5: 31.382},
+    "s4": {0: 5.284, 2: 12.838, 3: 70.250, 4: 158.964, 5: 31.382},
+}
+
+AREA_VALUE_LABELS_IDX = {2: 1, 3: 2, 4: 3, 5: 4}  # قيمة الراستر -> index بـ legend_labels/REAL_PALETTE
 
 CATEGORIES = [
     {"id": "health", "file": "data/reports/health_facilities.csv", "icon": "🏥",
@@ -280,6 +291,47 @@ def kpi_card(icon, title, avg_value):
     """, unsafe_allow_html=True)
 
 
+def area_donut_chart(scenario_id, lang, T, M, key):
+    """رسم دائري يوضح توزيع المساحة (كم²) حسب درجة الخطورة لسيناريو معيّن"""
+    import plotly.graph_objects as go
+    data = AREA_DATA.get(scenario_id, {})
+    if not data:
+        return
+
+    labels, values, colors = [], [], []
+    for val in sorted(data.keys()):
+        area = data[val]
+        if val == 0:
+            labels.append(T["area_safe_label"])
+            colors.append(SAFE_COLOR)
+        else:
+            idx = AREA_VALUE_LABELS_IDX.get(val, 0)
+            labels.append(M["legend_labels"][idx])
+            colors.append(REAL_PALETTE[idx])
+        values.append(area)
+
+    total_area = sum(values)
+    flooded_area = sum(v for val, v in data.items() if val != 0)
+
+    c1, c2 = st.columns(2)
+    with c1:
+        st.metric(T["area_total_metric"], f"{total_area:.1f} كم²" if lang == "ar" else f"{total_area:.1f} km²")
+    with c2:
+        st.metric(T["area_flooded_metric"], f"{flooded_area:.1f} كم²" if lang == "ar" else f"{flooded_area:.1f} km²")
+
+    fig = go.Figure(data=[go.Pie(
+        labels=labels, values=values, hole=0.5,
+        marker=dict(colors=colors),
+        textinfo="label+percent", textposition="outside",
+        showlegend=False,
+    )])
+    fig.update_layout(
+        title=dict(text=T["area_chart_title"], x=0.5, font=dict(size=15)),
+        height=380, margin=dict(l=10, r=10, t=50, b=10),
+    )
+    st.plotly_chart(fig, use_container_width=True, key=key)
+
+
 def category_bar_chart(df, name_col, risk_col, key, lang, axis_title):
     import plotly.graph_objects as go
     d = df[[name_col, risk_col]].dropna().copy()
@@ -339,7 +391,7 @@ def render_report(scenario, lang, M, day_id):
 
 
 def render_day_section(day_id, day_title, rain_mm, lang, T, M, bump=0):
-    """يعرض قسمًا كاملاً (خريطة + Legend + تقرير) ليوم واحد"""
+    """يعرض قسمًا كاملاً (خريطة + Legend + مساحة + تقرير) ليوم واحد"""
     st.subheader(day_title)
 
     scenario = get_scenario(rain_mm, bump=bump)
@@ -394,6 +446,11 @@ def render_day_section(day_id, day_title, rain_mm, lang, T, M, bump=0):
             {legend_html}
         </div>
         """, unsafe_allow_html=True)
+
+    st.write("")
+
+    with st.container(key=f"card_risk_area_{day_id}"):
+        area_donut_chart(scenario["id"], lang, T, M, key=f"area_chart_{day_id}")
 
     st.write("")
 

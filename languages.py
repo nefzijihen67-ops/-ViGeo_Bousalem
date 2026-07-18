@@ -131,6 +131,10 @@ TEXTS = {
         "dam_release_label": "🚧 هل هناك تصريف استثنائي من السدود اليوم؟ (كسّاب / بوهرتمة / ملاق)",
         "dam_release_note": "ℹ️ النموذج الحالي يعتمد على كمية الأمطار فقط، ولا يملك بيانات حية عن تصريف السدود (لعدم توفر واجهة برمجية عامة لها حاليًا). عند التفعيل، يرفع النظام تقديريًا مستوى الخطر درجة واحدة، محاكاةً لما حدث فعليًا في فيضان جانفي 2003، حين فاقمت إطلاقات سد ملاق منسوب المياه بشكل ملحوظ رغم أن كمية الأمطار وحدها لم تكن لتُنذر بنفس الخطورة.",
         "dam_release_active_badge": "⚠️ تم رفع مستوى الخطر بسبب تصريف السدود",
+        "area_chart_title": "🌊 توزيع المساحة حسب درجة الخطورة",
+        "area_safe_label": "غير مغمورة (آمنة)",
+        "area_flooded_metric": "المساحة الإجمالية المتوقع غمرها",
+        "area_total_metric": "المساحة الإجمالية للمنطقة المدروسة",
     },
     "fr": {
         "app_title": "ViGeo | Bou Salem",
@@ -259,6 +263,10 @@ TEXTS = {
         "dam_release_label": "🚧 Y a-t-il un lâcher exceptionnel des barrages aujourd'hui ? (Kasseb / Bou Hertma / Mellègue)",
         "dam_release_note": "ℹ️ Le modèle actuel se base uniquement sur la quantité de pluie et ne dispose pas de données en temps réel sur les lâchers de barrages (faute d'API publique disponible). Si activé, le système augmente le niveau de risque d'un cran, en simulant ce qui s'est réellement produit lors de l'inondation de janvier 2003, où les lâchers du barrage Mellègue ont significativement aggravé le niveau des eaux alors que la pluie seule n'aurait pas annoncé une telle gravité.",
         "dam_release_active_badge": "⚠️ Niveau de risque augmenté en raison des lâchers de barrages",
+        "area_chart_title": "🌊 Répartition de la superficie par niveau de risque",
+        "area_safe_label": "Non inondée (sûre)",
+        "area_flooded_metric": "Superficie totale potentiellement inondée",
+        "area_total_metric": "Superficie totale de la zone d'étude",
     },
    "en": {
         "app_title": "ViGeo | Bousalem",
@@ -387,5 +395,9 @@ TEXTS = {
         "dam_release_label": "🚧 Is there an exceptional dam release today? (Kasseb / Bou Hertma / Mellègue)",
         "dam_release_note": "ℹ️ The current model relies solely on rainfall amount and has no live data on dam releases (no public API is currently available). If enabled, the system raises the risk level by one tier, simulating what actually happened during the January 2003 flood, when releases from the Mellègue Dam significantly worsened water levels even though rainfall alone would not have signaled the same severity.",
         "dam_release_active_badge": "⚠️ Risk level raised due to dam releases",
+        "area_chart_title": "🌊 Area Distribution by Risk Level",
+        "area_safe_label": "Not flooded (safe)",
+        "area_flooded_metric": "Total area expected to flood",
+        "area_total_metric": "Total study area",
     },
 }
