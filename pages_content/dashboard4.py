@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import requests
 import json
 import os
@@ -25,7 +26,7 @@ SCENARIOS = [
 ]
 
 REAL_PALETTE = ["#91CBA8", "#DDF1B4", "#FEDF99", "#F59053", "#D7191C"]
-SAFE_COLOR = "#A9C9BB"
+SAFE_COLOR = "#B9C7C2"
 
 PRIORITY_KEYWORDS = [
     "tres faible", "très faible", "very low", "faible", "low",
@@ -33,7 +34,6 @@ PRIORITY_KEYWORDS = [
     "elevee", "élevée", "high", "tres elevee", "très élevée", "very high",
 ]
 
-# مساحة كل درجة خطورة (كم²) لكل سيناريو، مستخرجة من إحصائيات QGIS (Unique Values)
 AREA_DATA = {
     "s1": {0: 247.656, 5: 31.382},
     "s2": {0: 88.372, 4: 158.964, 5: 31.382},
@@ -41,7 +41,7 @@ AREA_DATA = {
     "s4": {0: 5.284, 2: 12.838, 3: 70.250, 4: 158.964, 5: 31.382},
 }
 
-AREA_VALUE_LABELS_IDX = {2: 1, 3: 2, 4: 3, 5: 4}  # قيمة الراستر -> index بـ legend_labels/REAL_PALETTE
+AREA_VALUE_LABELS_IDX = {2: 1, 3: 2, 4: 3, 5: 4}
 
 CATEGORIES = [
     {"id": "health", "file": "data/reports/health_facilities.csv", "icon": "🏥",
@@ -68,6 +68,16 @@ MAP_TXT = {
         "day_today": "📍 اليوم", "day_tomorrow": "📆 غدًا", "day_after": "📆 بعد غد",
         "forecast_rain_info": "🌐 كمية الأمطار المتوقعة (Open-Meteo): **{rain} ملم**",
         "warning_system_sub": "تابعي خطر الفيضان لليوم الحالي وليومين قادمين، بناءً على توقعات الأمطار.",
+        "area_col_level": "درجة الخطورة", "area_col_km2": "المساحة (كم²)", "area_col_pct": "النسبة",
+        "unit_km2": "كم²",
+        "search_label": "🔍 ابحثي عن مكان (مدرسة، حي، شارع...)",
+        "search_placeholder": "مثال: المعهد الثانوي ببوسالم",
+        "search_button": "بحث",
+        "search_not_found": "⚠️ لم يتم العثور على هذا المكان. جربي كتابة اسم أدق، أو أضيفي كلمة 'بوسالم' لتحسين الدقة.",
+        "risk_found_prefix": "📍 نتيجة البحث",
+        "risk_at_location": "درجة الخطر بهذا الموقع",
+        "risk_unknown": "⚠️ الموقع خارج نطاق خريطة الخطر الحالية، أو تعذّر تحديد درجة الخطورة بدقة.",
+        "indexing_msg": "⏳ يتم تجهيز بيانات الموقع الجغرافية لأول مرة (قد يستغرق بضع ثوانٍ)...",
     },
     "fr": {
         "legend_title": "🎨 Niveau de risque :", "legend_labels": ["Très faible", "Faible", "Modéré", "Élevé", "Très élevé"],
@@ -80,6 +90,16 @@ MAP_TXT = {
         "day_today": "📍 Aujourd'hui", "day_tomorrow": "📆 Demain", "day_after": "📆 Après-demain",
         "forecast_rain_info": "🌐 Pluie prévue (Open-Meteo) : **{rain} mm**",
         "warning_system_sub": "Suivez le risque d'inondation pour aujourd'hui et les deux prochains jours, selon les prévisions de pluie.",
+        "area_col_level": "Niveau de risque", "area_col_km2": "Superficie (km²)", "area_col_pct": "Pourcentage",
+        "unit_km2": "km²",
+        "search_label": "🔍 Rechercher un lieu (école, quartier, rue...)",
+        "search_placeholder": "Exemple : Lycée de Bousalem",
+        "search_button": "Rechercher",
+        "search_not_found": "⚠️ Lieu introuvable. Essayez un nom plus précis, ou ajoutez 'Bousalem' pour améliorer la précision.",
+        "risk_found_prefix": "📍 Résultat de la recherche",
+        "risk_at_location": "Niveau de risque à cet endroit",
+        "risk_unknown": "⚠️ Le lieu est hors de la carte de risque actuelle, ou le niveau n'a pas pu être déterminé avec précision.",
+        "indexing_msg": "⏳ Préparation des données géographiques pour la première fois (quelques secondes)...",
     },
     "en": {
         "legend_title": "🎨 Risk level:", "legend_labels": ["Very low", "Low", "Moderate", "High", "Very high"],
@@ -92,6 +112,16 @@ MAP_TXT = {
         "day_today": "📍 Today", "day_tomorrow": "📆 Tomorrow", "day_after": "📆 Day after tomorrow",
         "forecast_rain_info": "🌐 Expected rainfall (Open-Meteo): **{rain} mm**",
         "warning_system_sub": "Track flood risk for today and the next two days, based on rainfall forecasts.",
+        "area_col_level": "Risk level", "area_col_km2": "Area (km²)", "area_col_pct": "Percentage",
+        "unit_km2": "km²",
+        "search_label": "🔍 Search a place (school, neighborhood, street...)",
+        "search_placeholder": "Example: Bousalem High School",
+        "search_button": "Search",
+        "search_not_found": "⚠️ Place not found. Try a more precise name, or add 'Bousalem' to improve accuracy.",
+        "risk_found_prefix": "📍 Search result",
+        "risk_at_location": "Risk level at this location",
+        "risk_unknown": "⚠️ Location is outside the current risk map, or the risk level could not be determined precisely.",
+        "indexing_msg": "⏳ Preparing geographic data for the first time (a few seconds)...",
     },
 }
 
@@ -291,45 +321,76 @@ def kpi_card(icon, title, avg_value):
     """, unsafe_allow_html=True)
 
 
-def area_donut_chart(scenario_id, lang, T, M, key):
-    """رسم دائري يوضح توزيع المساحة (كم²) حسب درجة الخطورة لسيناريو معيّن"""
+def area_stat_card(icon, label, value_text, color):
+    st.markdown(f"""
+    <div style='background:white; border-radius:14px; padding:20px 14px; text-align:center;
+                border-top:5px solid {color}; box-shadow:0 3px 12px rgba(0,0,0,0.08); height:100%;'>
+        <div style='font-size:30px; line-height:1;'>{icon}</div>
+        <div style='font-size:12.5px; color:#666; margin-top:8px;'>{label}</div>
+        <div style='font-size:26px; font-weight:800; color:{color}; margin-top:4px;'>{value_text}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def area_section(scenario_id, lang, T, M, key):
+    """قسم احترافي: بطاقات إحصائية + رسم دائري بعرض كامل + جدول أسفله بعرض كامل"""
     import plotly.graph_objects as go
     data = AREA_DATA.get(scenario_id, {})
     if not data:
         return
 
-    labels, values, colors = [], [], []
+    unit = M["unit_km2"]
+    rows = []
     for val in sorted(data.keys()):
         area = data[val]
         if val == 0:
-            labels.append(T["area_safe_label"])
-            colors.append(SAFE_COLOR)
+            label = T["area_safe_label"]
+            color = SAFE_COLOR
         else:
             idx = AREA_VALUE_LABELS_IDX.get(val, 0)
-            labels.append(M["legend_labels"][idx])
-            colors.append(REAL_PALETTE[idx])
-        values.append(area)
+            label = M["legend_labels"][idx]
+            color = REAL_PALETTE[idx]
+        rows.append({"label": label, "area": area, "color": color})
 
-    total_area = sum(values)
-    flooded_area = sum(v for val, v in data.items() if val != 0)
+    total_area = sum(r["area"] for r in rows)
+    flooded_area = sum(r["area"] for r in rows if r["label"] != T["area_safe_label"])
 
     c1, c2 = st.columns(2)
     with c1:
-        st.metric(T["area_total_metric"], f"{total_area:.1f} كم²" if lang == "ar" else f"{total_area:.1f} km²")
+        area_stat_card("🗺️", T["area_total_metric"], f"{total_area:.1f} {unit}", "#16414A")
     with c2:
-        st.metric(T["area_flooded_metric"], f"{flooded_area:.1f} كم²" if lang == "ar" else f"{flooded_area:.1f} km²")
+        area_stat_card("🌊", T["area_flooded_metric"], f"{flooded_area:.1f} {unit}", "#D7191C")
+
+    st.write("")
 
     fig = go.Figure(data=[go.Pie(
-        labels=labels, values=values, hole=0.5,
-        marker=dict(colors=colors),
-        textinfo="label+percent", textposition="outside",
+        labels=[r["label"] for r in rows],
+        values=[r["area"] for r in rows],
+        hole=0.55,
+        marker=dict(colors=[r["color"] for r in rows], line=dict(color="white", width=2)),
+        textinfo="percent", textposition="outside",
         showlegend=False,
     )])
     fig.update_layout(
-        title=dict(text=T["area_chart_title"], x=0.5, font=dict(size=15)),
-        height=380, margin=dict(l=10, r=10, t=50, b=10),
+        title=dict(text=T["area_chart_title"], x=0.5, font=dict(size=16)),
+        height=420, margin=dict(l=10, r=10, t=60, b=10),
     )
     st.plotly_chart(fig, use_container_width=True, key=key)
+
+    st.markdown(f"<div style='font-weight:700; color:#16414A; margin:10px 0; text-align:center;'>{M['area_col_level']} — {M['area_col_km2']} — {M['area_col_pct']}</div>", unsafe_allow_html=True)
+
+    cols = st.columns(len(rows))
+    for col, r in zip(cols, rows):
+        pct = (r["area"] / total_area * 100) if total_area else 0
+        with col:
+            st.markdown(f"""
+            <div style='background:#FBFAF7; border-radius:10px; padding:14px 8px; text-align:center;
+                        border-top:4px solid {r["color"]};'>
+                <div style='font-size:12.5px; font-weight:700; color:#333; min-height:34px;'>{r["label"]}</div>
+                <div style='font-size:16px; font-weight:800; color:{r["color"]}; margin-top:6px;'>{r["area"]:.2f}</div>
+                <div style='font-size:11px; color:#888;'>{unit} &nbsp;·&nbsp; {pct:.1f}%</div>
+            </div>
+            """, unsafe_allow_html=True)
 
 
 def category_bar_chart(df, name_col, risk_col, key, lang, axis_title):
@@ -390,8 +451,193 @@ def render_report(scenario, lang, M, day_id):
             category_bar_chart(df, name_col, scenario["col"], f"chart_{cat['id']}_{day_id}", lang, M["risk_axis"])
 
 
+# ============================================================
+# البحث الجغرافي (Geocoding) + تحديد الخطر عند نقطة (Point-in-Polygon)
+# ============================================================
+def geocode_place(query):
+    try:
+        url = "https://nominatim.openstreetmap.org/search"
+        params = {
+            "q": f"{query}, Bousalem, Tunisia",
+            "format": "json",
+            "limit": 1,
+            "viewbox": "8.75,36.70,9.15,36.45",
+            "bounded": 0,
+        }
+        headers = {"User-Agent": "ViGeo-Bousalem-FloodDashboard/1.0"}
+        r = requests.get(url, params=params, headers=headers, timeout=8)
+        r.raise_for_status()
+        results = r.json()
+        if results:
+            return float(results[0]["lat"]), float(results[0]["lon"]), results[0].get("display_name", query)
+    except Exception:
+        pass
+    return None
+
+
+def _geom_bbox(geom):
+    xs, ys = [], []
+
+    def walk(c):
+        if not c:
+            return
+        if isinstance(c[0], (int, float)):
+            xs.append(c[0])
+            ys.append(c[1])
+        else:
+            for sub in c:
+                walk(sub)
+    try:
+        walk(geom.get("coordinates"))
+    except Exception:
+        return None
+    if not xs:
+        return None
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def _point_in_ring(x, y, ring):
+    inside = False
+    n = len(ring)
+    j = n - 1
+    for i in range(n):
+        xi, yi = ring[i][0], ring[i][1]
+        xj, yj = ring[j][0], ring[j][1]
+        if ((yi > y) != (yj > y)) and (x < (xj - xi) * (y - yi) / ((yj - yi) or 1e-15) + xi):
+            inside = not inside
+        j = i
+    return inside
+
+
+def _point_in_geom(x, y, geom):
+    gtype = geom.get("type")
+    coords = geom.get("coordinates")
+    if gtype == "Polygon":
+        if not coords or not _point_in_ring(x, y, coords[0]):
+            return False
+        for hole in coords[1:]:
+            if _point_in_ring(x, y, hole):
+                return False
+        return True
+    if gtype == "MultiPolygon":
+        for poly in coords:
+            if not poly or not _point_in_ring(x, y, poly[0]):
+                continue
+            in_hole = any(_point_in_ring(x, y, h) for h in poly[1:])
+            if not in_hole:
+                return True
+        return False
+    return False
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def build_spatial_lookup(geojson_path):
+    geo = load_geojson_raw(geojson_path)
+    if not geo:
+        return None
+    field = detect_class_field(geo)
+    if not field:
+        return None
+    bboxes, values, geoms = [], [], []
+    for f in geo.get("features", []):
+        geom = f.get("geometry") or {}
+        bbox = _geom_bbox(geom)
+        if bbox is None:
+            continue
+        bboxes.append(bbox)
+        values.append((f.get("properties") or {}).get(field))
+        geoms.append(geom)
+    if not bboxes:
+        return None
+    return {"arr": np.array(bboxes, dtype=float), "values": values, "geoms": geoms}
+
+
+def get_risk_value_at_point(lookup, lon, lat):
+    if lookup is None:
+        return None
+    arr = lookup["arr"]
+    mask = (arr[:, 0] <= lon) & (lon <= arr[:, 2]) & (arr[:, 1] <= lat) & (lat <= arr[:, 3])
+    idxs = np.nonzero(mask)[0]
+    for i in idxs:
+        if _point_in_geom(lon, lat, lookup["geoms"][i]):
+            return lookup["values"][i]
+    if len(idxs) > 0:
+        return lookup["values"][idxs[0]]
+    return None
+
+
+def render_search_box(day_id, T, M, geo, geojson_path):
+    """خانة البحث عن مكان + النتيجة: إحداثيات + درجة الخطر عند تلك النقطة"""
+    with st.container(key=f"card_search_{day_id}"):
+        col_input, col_btn = st.columns([4, 1])
+        with col_input:
+            query = st.text_input(M["search_label"], key=f"search_input_{day_id}",
+                                   placeholder=M["search_placeholder"], label_visibility="visible")
+        with col_btn:
+            st.write("")
+            clicked = st.button(M["search_button"], key=f"search_btn_{day_id}", use_container_width=True)
+
+    result_key = f"search_result_{day_id}"
+    if clicked:
+        if query and query.strip():
+            geo_result = geocode_place(query.strip())
+            if geo_result:
+                st.session_state[result_key] = geo_result
+            else:
+                st.session_state[result_key] = None
+                st.error(M["search_not_found"])
+        else:
+            st.session_state[result_key] = None
+
+    search_result = st.session_state.get(result_key)
+
+    risk_label_html = ""
+    if search_result:
+        slat, slon, sname = search_result
+        with st.spinner(M["indexing_msg"]):
+            lookup = build_spatial_lookup(geojson_path)
+            val = get_risk_value_at_point(lookup, slon, slat) if lookup else None
+
+        legend_labels = M["legend_labels"]
+        if val is not None:
+            try:
+                ordered = order_values(set(lookup["values"]))
+                idx = ordered.index(val)
+                n = len(ordered)
+                label_idx = int(idx * (len(legend_labels) - 1) / max(n - 1, 1))
+                risk_text = legend_labels[label_idx]
+                risk_color_hex = REAL_PALETTE[label_idx]
+            except Exception:
+                risk_text = None
+                risk_color_hex = "#9e9e9e"
+        else:
+            risk_text = None
+            risk_color_hex = "#9e9e9e"
+
+        if risk_text:
+            risk_label_html = f"""
+            <div style='background:{risk_color_hex}18; border-right:5px solid {risk_color_hex};
+                        border-radius:10px; padding:14px 18px; margin-top:10px;'>
+                <div style='font-weight:700; color:#16414A; font-size:14px;'>{M["risk_found_prefix"]}: {sname}</div>
+                <div style='font-size:15px; margin-top:4px;'>{M["risk_at_location"]}: 
+                    <span style='color:{risk_color_hex}; font-weight:800;'>{risk_text}</span>
+                </div>
+            </div>
+            """
+        else:
+            risk_label_html = f"""
+            <div style='background:#F0F0F0; border-right:5px solid #9e9e9e;
+                        border-radius:10px; padding:14px 18px; margin-top:10px;'>
+                <div style='font-weight:700; color:#16414A; font-size:14px;'>{M["risk_found_prefix"]}: {sname}</div>
+                <div style='font-size:13.5px; margin-top:4px; color:#666;'>{M["risk_unknown"]}</div>
+            </div>
+            """
+        st.markdown(risk_label_html, unsafe_allow_html=True)
+
+    return search_result
+
+
 def render_day_section(day_id, day_title, rain_mm, lang, T, M, bump=0):
-    """يعرض قسمًا كاملاً (خريطة + Legend + مساحة + تقرير) ليوم واحد"""
     st.subheader(day_title)
 
     scenario = get_scenario(rain_mm, bump=bump)
@@ -403,6 +649,9 @@ def render_day_section(day_id, day_title, rain_mm, lang, T, M, bump=0):
         return
 
     scenario_label = scenario["label"][lang]
+    geo = load_geojson_raw(scenario["geojson"])
+
+    search_result = render_search_box(day_id, T, M, geo, scenario["geojson"])
 
     with st.container(key=f"card_risk_map_{day_id}"):
         st.caption(M["scenario_caption"].format(label=scenario_label, rain=rain_mm))
@@ -411,8 +660,13 @@ def render_day_section(day_id, day_title, rain_mm, lang, T, M, bump=0):
 
         opacity = st.slider(T["opacity_label"], 0.1, 0.9, 0.65, 0.05, key=f"opacity_{day_id}")
 
-        geo = load_geojson_raw(scenario["geojson"])
-        m = folium.Map(location=[LAT, LON], zoom_start=13, tiles="OpenStreetMap", prefer_canvas=True)
+        map_center = [LAT, LON]
+        zoom = 13
+        if search_result:
+            map_center = [search_result[0], search_result[1]]
+            zoom = 17
+
+        m = folium.Map(location=map_center, zoom_start=zoom, tiles="OpenStreetMap", prefer_canvas=True)
         folium.TileLayer(
             tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             attr="Esri World Imagery", name=M["satellite"], overlay=False,
@@ -424,10 +678,17 @@ def render_day_section(day_id, day_title, rain_mm, lang, T, M, bump=0):
         else:
             st.info(f"🗺️ {scenario['geojson']}")
 
+        if search_result:
+            slat, slon, sname = search_result
+            folium.Marker(
+                [slat, slon], tooltip=sname,
+                icon=folium.Icon(color="black", icon="map-marker", prefix="fa"),
+            ).add_to(m)
+
         folium.LayerControl().add_to(m)
         st_folium(
             m, use_container_width=True, height=650,
-            key=f"map_{day_id}_{scenario['id']}",
+            key=f"map_{day_id}_{scenario['id']}_{'s' if search_result else 'n'}",
             returned_objects=[],
         )
 
@@ -450,7 +711,7 @@ def render_day_section(day_id, day_title, rain_mm, lang, T, M, bump=0):
     st.write("")
 
     with st.container(key=f"card_risk_area_{day_id}"):
-        area_donut_chart(scenario["id"], lang, T, M, key=f"area_chart_{day_id}")
+        area_section(scenario["id"], lang, T, M, key=f"area_chart_{day_id}")
 
     st.write("")
 
