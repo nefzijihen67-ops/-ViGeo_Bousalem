@@ -192,7 +192,7 @@ def get_scenario(rain_mm, bump=0):
 
 
 @st.cache_data(ttl=3600)
-def load_geojson_raw(path):
+def load_geojson_raw(path, _mtime=None):
     if not os.path.exists(path):
         return None
     with open(path, "r", encoding="utf-8") as f:
@@ -649,7 +649,7 @@ def render_day_section(day_id, day_title, rain_mm, lang, T, M, bump=0):
         return
 
     scenario_label = scenario["label"][lang]
-    geo = load_geojson_raw(scenario["geojson"])
+    geo = load_geojson_raw(scenario["geojson"], _mtime=os.path.getmtime(scenario["geojson"]))
 
     search_result = render_search_box(day_id, T, M, geo, scenario["geojson"])
 
