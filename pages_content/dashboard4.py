@@ -273,17 +273,23 @@ def order_values(values):
 
 
 def build_real_color_map(geo, field):
-    values = set()
+    fixed_map = {
+        1: REAL_PALETTE[0],   # ضعيف جدًا - أخضر
+        2: REAL_PALETTE[1],   # ضعيف - أخضر فاتح
+        3: REAL_PALETTE[2],   # متوسط - أصفر
+        4: REAL_PALETTE[3],   # مرتفع - برتقالي
+        5: REAL_PALETTE[4],   # مرتفع جدًا - أحمر
+    }
+    color_map = {}
     for f in geo.get("features", []):
         v = (f.get("properties") or {}).get(field)
-        if v is not None:
-            values.add(v)
-    ordered = order_values(values)
-    n = len(ordered)
-    color_map = {}
-    for i, v in enumerate(ordered):
-        idx = int(i * (len(REAL_PALETTE) - 1) / max(n - 1, 1))
-        color_map[v] = REAL_PALETTE[idx]
+        if v is None:
+            continue
+        try:
+            v_int = int(v)
+        except (ValueError, TypeError):
+            continue
+        color_map[v] = fixed_map.get(v_int, "#9e9e9e")
     return color_map
 
 
