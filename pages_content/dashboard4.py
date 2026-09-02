@@ -35,9 +35,9 @@ PRIORITY_KEYWORDS = [
 ]
 
 AREA_DATA = {
-    "s1": {0: 247.656, 5: 31.382},
-    "s2": {0: 88.372, 4: 158.964, 5: 31.382},
-    "s3": {0: 18.122, 3: 70.250, 4: 158.964, 5: 31.382},
+    "s1": {0: 247.656, 3: 31.382},
+    "s2": {0: 88.372, 2: 158.964, 3: 31.382},
+    "s3": {0: 18.122, 2: 70.250, 3: 158.964, 5: 31.382},
     "s4": {0: 5.284, 2: 12.838, 3: 70.250, 4: 158.964, 5: 31.382},
 }
 
@@ -607,18 +607,17 @@ def render_search_box(day_id, T, M, geo, geojson_path):
         legend_labels = M["legend_labels"]
         if val is not None:
             try:
-                ordered = order_values(set(lookup["values"]))
-                idx = ordered.index(val)
-                n = len(ordered)
-                label_idx = int(idx * (len(legend_labels) - 1) / max(n - 1, 1))
+                v_int = int(val)
+                label_idx = max(0, min(len(legend_labels) - 1, v_int - 1))
                 risk_text = legend_labels[label_idx]
                 risk_color_hex = REAL_PALETTE[label_idx]
-            except Exception:
+            except (ValueError, TypeError):
                 risk_text = None
                 risk_color_hex = "#9e9e9e"
         else:
             risk_text = None
             risk_color_hex = "#9e9e9e"
+            
 
         if risk_text:
             risk_label_html = f"""
